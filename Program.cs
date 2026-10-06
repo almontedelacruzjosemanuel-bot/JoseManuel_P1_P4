@@ -1,30 +1,41 @@
-using Parcial1_P4_JoseManuel.Services;
+using Microsoft.Data.Sqlite;
 using Scalar.AspNetCore;
-using Serilog;
-
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateLogger();
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.UseSerilog();
-
 builder.Services.AddControllers();
+
 builder.Services.AddOpenApi();
-builder.Services.AddScoped<NumbersService>();
 
 var app = builder.Build();
 
-app.MapOpenApi();
-app.MapScalarApiReference();
+// Crear la base de datos y la tabla
+using (var connection = new SqliteConnection("Data Source=editorial.db"))
+{
+    connection.Open();
+
+    var sql = @"
+        CREATE TABLE IF NOT EXISTS Autores
+        (
+            IdAutor INTEGER PRIMARY KEY AUTOINCREMENT,
+            Nombres TEXT NOT NULL,
+            Nacionalidades TEXT NOT NULL,
+            Fechas TEXT NOT NULL,
+            Sueldos REAL NOT NULL
+        );
+    ";
+
+    using var command = new SqliteCommand(sql, connection);
+    command.ExecuteNonQuery();
+}
+
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+
+    app.MapScalarApiReference();
+}
 
 app.MapControllers();
-
-using (var scope = app.Services.CreateScope())
-{
-    var service = scope.ServiceProvider.GetRequiredService<NumbersService>();
-    await service.InitializeDatabase();
-}
 
 app.Run();
