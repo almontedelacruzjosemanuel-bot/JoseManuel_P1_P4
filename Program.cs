@@ -29,12 +29,9 @@ using (var connection = new SqliteConnection("Data Source=editorial.db"))
     command.ExecuteNonQuery();
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
+app.MapOpenApi();
 
-    app.MapScalarApiReference();
-}
+app.MapScalarApiReference();
 
 app.MapControllers();
 
